@@ -9,7 +9,12 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
-export default function UserList() {
+interface Props {
+  onSelect: (userId: string) => void;
+  selectedUserId: string | null;
+}
+
+export default function UserList({ onSelect, selectedUserId }: Props) {
   const { user } = useUser();
   const users = useQuery(api.users.getAllUsers);
   const [search, setSearch] = useState("");
@@ -52,39 +57,45 @@ export default function UserList() {
 
       {/* 🔹 User List */}
       <ScrollArea className="flex-1">
-        <div className="p-2">
+        <div className="space-y-1 p-2">
           {filteredUsers.length === 0 ? (
             <div className="text-muted-foreground mt-10 text-center text-sm">
               No users found.
             </div>
           ) : (
-            filteredUsers.map((u) => (
-              <div
-                key={u._id}
-                className="group hover:bg-accent flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 transition"
-              >
-                {/* Avatar + Online Dot */}
-                <div className="relative">
-                  <Avatar className="h-10 w-10">
-                    <AvatarImage src={u.image} />
-                    <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
+            filteredUsers.map((u) => {
+              const isSelected = selectedUserId === u.clerkId;
 
-                  {/* 🟢 Online Indicator */}
-                  {u.isOnline && (
-                    <span className="border-background absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 bg-green-500" />
-                  )}
-                </div>
+              return (
+                <div
+                  key={u._id}
+                  onClick={() => onSelect(u.clerkId)}
+                  className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 transition ${
+                    isSelected ? "bg-accent" : "hover:bg-accent/60"
+                  }`}
+                >
+                  {/* Avatar + Online Dot */}
+                  <div className="relative">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={u.image} />
+                      <AvatarFallback>{u.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
 
-                {/* Name + Status */}
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium">{u.name}</span>
-                  <span className="text-muted-foreground text-xs">
-                    {u.isOnline ? "Online" : "Offline"}
-                  </span>
+                    {u.isOnline && (
+                      <span className="border-background absolute right-0 bottom-0 h-3 w-3 rounded-full border-2 bg-green-500" />
+                    )}
+                  </div>
+
+                  {/* Name + Status */}
+                  <div className="flex flex-col">
+                    <span className="text-sm font-medium">{u.name}</span>
+                    <span className="text-muted-foreground text-xs">
+                      {u.isOnline ? "Online" : "Offline"}
+                    </span>
+                  </div>
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </ScrollArea>
