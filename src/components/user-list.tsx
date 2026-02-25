@@ -50,7 +50,7 @@ export default function UserList({ onSelect, selectedUserId }: Props) {
     .filter((u) => u.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="bg-background flex h-full w-80 flex-col border-r">
+    <div className="bg-background flex h-full w-full flex-col border-r">
       {/* Header */}
       <div className="border-b p-4">
         <h2 className="mb-3 text-lg font-semibold">Messages</h2>
@@ -125,7 +125,7 @@ export default function UserList({ onSelect, selectedUserId }: Props) {
                     )}
 
                     {u.unreadCount > 0 && (
-                      <span className="absolute right-2 bottom-2 flex size-4 items-center justify-center rounded-full bg-green-600 text-[10px] text-white">
+                      <span className="absolute right-2 bottom-2 flex size-4 items-center justify-center rounded-full bg-green-600 text-[10px] text-white dark:bg-green-700">
                         {u.unreadCount}
                       </span>
                     )}

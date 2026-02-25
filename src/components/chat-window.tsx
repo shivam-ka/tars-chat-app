@@ -9,14 +9,18 @@ import { Id } from "../../convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Check, CheckCheck } from "lucide-react";
+import { ArrowLeft, Check, CheckCheck, SendHorizonal } from "lucide-react";
 import { cn, formatDateLabel } from "@/lib/utils";
 
 interface ChatWindowProps {
   conversationId: Id<"conversations"> | null;
+  handleBack: () => void;
 }
 
-export default function ChatWindow({ conversationId }: ChatWindowProps) {
+export default function ChatWindow({
+  conversationId,
+  handleBack,
+}: ChatWindowProps) {
   const { user } = useUser();
   const sendMessage = useMutation(api.messages.sendMessage);
   const markAsRead = useMutation(api.messages.markAsRead);
@@ -45,7 +49,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
 
   if (!conversationId) {
     return (
-      <div className="text-muted-foreground flex h-full items-center justify-center">
+      <div className="bg-background text-muted-foreground flex h-full items-center justify-center">
         Select a conversation
       </div>
     );
@@ -53,7 +57,9 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
 
   if (!messages || !user) {
     return (
-      <div className="flex h-full items-center justify-center">Loading...</div>
+      <div className="bg-background flex h-full items-center justify-center">
+        Loading...
+      </div>
     );
   }
 
@@ -73,8 +79,14 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
   };
 
   return (
-    <div className="bg-muted/40 flex h-full flex-col">
+    <div className="bg-background flex h-full flex-col">
       {/* Messages */}
+      <div className="pt-2 pl-3">
+        <Button variant="outline" size="sm" onClick={() => handleBack()}>
+          <ArrowLeft />
+          Back
+        </Button>
+      </div>
       <div className="flex-1 overflow-hidden">
         <ScrollArea className="h-full px-4 py-6">
           <div className="flex flex-col gap-3">
@@ -82,7 +94,6 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
               const isMe = msg.senderId === user.id;
 
               const currentDate = formatDateLabel(msg.createdAt);
-
               const previousMessage = messages[index - 1];
               const previousDate = previousMessage
                 ? formatDateLabel(previousMessage.createdAt)
@@ -95,7 +106,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                   {/* Date Divider */}
                   {showDate && (
                     <div className="my-6 flex justify-center">
-                      <div className="bg-muted text-muted-foreground rounded-full px-3 py-1 text-xs shadow-sm">
+                      <div className="bg-muted text-muted-foreground rounded-sm px-3 py-1 text-xs">
                         {currentDate}
                       </div>
                     </div>
@@ -112,17 +123,19 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
                       {/* Bubble */}
                       <div
                         className={cn(
-                          "relative rounded-2xl px-4 py-2 text-sm wrap-break-word shadow-sm",
+                          "relative rounded-2xl px-4 py-2 text-sm shadow-sm",
                           isMe
-                            ? "rounded-br-sm bg-[#DCF8C6] text-black"
-                            : "bg-background rounded-bl-sm border",
+                            ? "bg-primary text-primary-foreground rounded-br-xs"
+                            : "bg-muted text-foreground rounded-bl-xs",
                         )}
                       >
-                        {/* Message Content */}
-                        <span className="block pr-12">{msg.content}</span>
+                        {/* Content */}
+                        <span className="block pr-12 wrap-break-word">
+                          {msg.content}
+                        </span>
 
                         {/* Time + Tick */}
-                        <div className="text-muted-foreground absolute right-2 bottom-1 flex items-center gap-1 text-[10px]">
+                        <div className="absolute right-2 bottom-1 mr-1 flex items-center gap-1 text-[10px] opacity-90">
                           <span>
                             {new Date(msg.createdAt).toLocaleTimeString([], {
                               hour: "2-digit",
@@ -132,22 +145,12 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
 
                           {isMe &&
                             (msg.read ? (
-                              <CheckCheck size={14} className="text-blue-500" />
+                              <CheckCheck size={14} />
                             ) : (
                               <Check size={14} />
                             ))}
                         </div>
                       </div>
-
-                      {/* Tail */}
-                      <div
-                        className={cn(
-                          "absolute bottom-0 h-3 w-3 rotate-45",
-                          isMe
-                            ? "-right-1.25 bg-[#DCF8C6]"
-                            : "bg-background -left-1.25 border-b border-l",
-                        )}
-                      />
                     </div>
                   </div>
                 </div>
@@ -159,8 +162,8 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
         </ScrollArea>
       </div>
 
-      {/* Input */}
-      <div className="bg-background border-t p-4">
+      {/* Input Section */}
+      <div className="border-border bg-background border-t p-4">
         <div className="flex items-center gap-2">
           <Input
             placeholder="Type a message"
@@ -175,6 +178,7 @@ export default function ChatWindow({ conversationId }: ChatWindowProps) {
             className="rounded-full px-6"
           >
             Send
+            <SendHorizonal className="size-4" />
           </Button>
         </div>
       </div>

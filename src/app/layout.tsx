@@ -3,6 +3,7 @@ import "./globals.css";
 import { fontVariables } from "@/config/fonts";
 import { ConvexClientProvider } from "./ConvexClientProvider.tsx";
 import { ClerkProvider } from "@clerk/nextjs";
+import { ThemeProvider } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,11 +17,15 @@ export default function RootLayout({
 }>) {
   return (
     <ClerkProvider>
-    <html lang="en">
-      <body className={`${fontVariables} antialiased`}>
-        <ConvexClientProvider>{children}</ConvexClientProvider>
-      </body>
-    </html>
+      <html lang="en" suppressHydrationWarning>
+        <body className={`${fontVariables} antialiased`}>
+          <ConvexClientProvider>
+            <ThemeProvider attribute="class" enableSystem>
+              {children}
+            </ThemeProvider>
+          </ConvexClientProvider>
+        </body>
+      </html>
     </ClerkProvider>
   );
 }

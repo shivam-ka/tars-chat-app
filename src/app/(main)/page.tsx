@@ -4,10 +4,10 @@ import { useState } from "react";
 import { useMutation } from "convex/react";
 import { useUser } from "@clerk/nextjs";
 import { api } from "../../../convex/_generated/api";
-
 import UserList from "@/components/user-list";
 import ChatWindow from "@/components/chat-window";
 import { Id } from "../../../convex/_generated/dataModel";
+import { cn } from "@/lib/utils";
 
 export default function Home() {
   const { user } = useUser();
@@ -33,12 +33,36 @@ export default function Home() {
     setSelectedConversation(conversationId);
   };
 
+  const handleBack = () => {
+    setSelectedConversation(null);
+    setSelectedUserId(null);
+  };
+
   return (
     <div className="flex h-full w-full">
-      <UserList onSelect={handleSelectUser} selectedUserId={selectedUserId} />
+      {/* User List */}
+      <div
+        className={cn(
+          "overflow-y-auto ",
+          "md:flex md:w-96",
+          selectedUserId ? "hidden" : "flex w-full",
+        )}
+      >
+        <UserList onSelect={handleSelectUser} selectedUserId={selectedUserId} />
+      </div>
 
-      <div className="flex min-w-0 flex-1 flex-col">
-        <ChatWindow conversationId={selectedConversation} />
+      {/* Chat Window */}
+      <div
+        className={cn(
+          "flex min-w-0 flex-1 flex-col",
+          "md:flex md:w-2/3",
+          selectedUserId ? "flex w-full" : "hidden",
+        )}
+      >
+        <ChatWindow
+          conversationId={selectedConversation}
+          handleBack={handleBack}
+        />
       </div>
     </div>
   );
