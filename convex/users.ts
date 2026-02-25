@@ -37,8 +37,62 @@ export const createUser = mutation({
   },
 });
 
-export const getAllUsers = query({
-  handler: async (ctx) => {
-    return await ctx.db.query("users").collect();
+export const getUsersWithLastMessage = query({
+  args: {
+    currentUserId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const users = await ctx.db.query("users").collect();
+
+    const results = [];
+
+    for (const user of users) {
+      if (user.clerkId === args.currentUserId) continue;
+
+      const participants = [args.currentUserId, user.clerkId].sort();
+
+      const conversation = await ctx.db
+        .query("conversations")
+        .withIndex("by_participants", (q) => q.eq("participants", participants))
+        .unique();
+
+      let lastMessage = null;
+      let unreadCount = 0;
+
+      if (conversation) {
+        // ✅ Get last message
+        lastMessage = await ctx.db
+          .query("messages")
+          .withIndex("by_conversation", (q) =>
+            q.eq("conversationId", conversation._id),
+          )
+          .order("desc")
+          .first();
+
+        // ✅ Get unread messages (only from other user)
+        const unreadMessages = await ctx.db
+          .query("messages")
+          .withIndex("by_conversation", (q) =>
+            q.eq("conversationId", conversation._id),
+          )
+          .filter((q) =>
+            q.and(
+              q.eq(q.field("read"), false),
+              q.neq(q.field("senderId"), args.currentUserId),
+            ),
+          )
+          .collect();
+
+        unreadCount = unreadMessages.length;
+      }
+
+      results.push({
+        ...user,
+        lastMessage,
+        unreadCount,
+      });
+    }
+
+    return results;
   },
 });

@@ -20,5 +20,8 @@ export default defineSchema({
     senderId: v.string(), // clerkId
     content: v.string(),
     createdAt: v.number(),
-  }).index("by_conversation", ["conversationId"]),
+    read: v.boolean(),
+  })
+    .index("by_conversation", ["conversationId"])
+    .index("by_conversation_and_read", ["conversationId", "read"]),
 });

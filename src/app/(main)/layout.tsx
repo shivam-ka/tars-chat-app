@@ -12,14 +12,14 @@ export default async function MainLayout({
   const { userId } = await auth();
 
   if (!userId) {
-   redirect("/sign-in")
+    redirect("/sign-in");
   }
 
   return (
-    <>
+    <div className="flex h-screen flex-col">
       <Navbar />
       <UserSync />
-      {children}
-    </>
+      <div className="flex flex-1 overflow-hidden">{children}</div>
+    </div>
   );
 }

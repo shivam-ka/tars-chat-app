@@ -34,9 +34,12 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-full w-full">
       <UserList onSelect={handleSelectUser} selectedUserId={selectedUserId} />
-      <ChatWindow conversationId={selectedConversation} />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <ChatWindow conversationId={selectedConversation} />
+      </div>
     </div>
   );
 }

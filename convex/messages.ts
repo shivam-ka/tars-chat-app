@@ -13,6 +13,7 @@ export const sendMessage = mutation({
       senderId: args.senderId,
       content: args.content,
       createdAt: Date.now(),
+      read: false,
     });
   },
 });
@@ -26,5 +27,26 @@ export const getMessages = query({
         q.eq("conversationId", args.conversationId),
       )
       .collect();
+  },
+});
+
+export const markAsRead = mutation({
+  args: {
+    conversationId: v.id("conversations"),
+    userId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const unreadMessages = await ctx.db
+      .query("messages")
+      .withIndex("by_conversation_and_read", (q) =>
+        q.eq("conversationId", args.conversationId).eq("read", false),
+      )
+      .collect();
+
+    for (const msg of unreadMessages) {
+      if (msg.senderId !== args.userId) {
+        await ctx.db.patch(msg._id, { read: true });
+      }
+    }
   },
 });

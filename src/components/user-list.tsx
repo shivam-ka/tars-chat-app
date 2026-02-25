@@ -8,6 +8,7 @@ import { useUser } from "@clerk/nextjs";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 interface Props {
   onSelect: (userId: string) => void;
@@ -16,13 +17,18 @@ interface Props {
 
 export default function UserList({ onSelect, selectedUserId }: Props) {
   const { user } = useUser();
-  const users = useQuery(api.users.getAllUsers);
+
+  const users = useQuery(
+    api.users.getUsersWithLastMessage,
+    user ? { currentUserId: user.id } : "skip",
+  );
+
   const [search, setSearch] = useState("");
 
   // 🔹 Loading State
   if (!users || !user) {
     return (
-      <div className="bg-background flex h-screen w-80 flex-col border-r">
+      <div className="bg-background flex h-full w-80 flex-col border-r">
         <div className="border-b p-4">
           <div className="bg-muted h-9 w-full animate-pulse rounded-md" />
         </div>
@@ -44,8 +50,8 @@ export default function UserList({ onSelect, selectedUserId }: Props) {
     .filter((u) => u.name.toLowerCase().includes(search.toLowerCase()));
 
   return (
-    <div className="bg-background flex h-screen w-80 flex-col border-r">
-      {/* 🔹 Header */}
+    <div className="bg-background flex h-full w-80 flex-col border-r">
+      {/* Header */}
       <div className="border-b p-4">
         <h2 className="mb-3 text-lg font-semibold">Messages</h2>
         <Input
@@ -55,7 +61,7 @@ export default function UserList({ onSelect, selectedUserId }: Props) {
         />
       </div>
 
-      {/* 🔹 User List */}
+      {/* User List */}
       <ScrollArea className="flex-1">
         <div className="space-y-1 p-2">
           {filteredUsers.length === 0 ? (
@@ -70,11 +76,12 @@ export default function UserList({ onSelect, selectedUserId }: Props) {
                 <div
                   key={u._id}
                   onClick={() => onSelect(u.clerkId)}
-                  className={`flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 transition ${
-                    isSelected ? "bg-accent" : "hover:bg-accent/60"
-                  }`}
+                  className={cn(
+                    "relative flex cursor-pointer items-center gap-3 rounded-lg px-3 py-2 transition",
+                    isSelected ? "bg-accent" : "hover:bg-accent/60",
+                  )}
                 >
-                  {/* Avatar + Online Dot */}
+                  {/* Avatar */}
                   <div className="relative">
                     <Avatar className="h-10 w-10">
                       <AvatarImage src={u.image} />
@@ -86,12 +93,42 @@ export default function UserList({ onSelect, selectedUserId }: Props) {
                     )}
                   </div>
 
-                  {/* Name + Status */}
-                  <div className="flex flex-col">
-                    <span className="text-sm font-medium">{u.name}</span>
-                    <span className="text-muted-foreground text-xs">
-                      {u.isOnline ? "Online" : "Offline"}
-                    </span>
+                  {/* Name + Last Message */}
+                  <div className="flex flex-1 flex-col overflow-hidden">
+                    <div className="flex items-center justify-between">
+                      <span className="truncate text-sm font-medium">
+                        {u.name}
+                      </span>
+
+                      {u.lastMessage && (
+                        <span className="text-muted-foreground text-xs">
+                          {new Date(u.lastMessage.createdAt).toLocaleTimeString(
+                            [],
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
+                        </span>
+                      )}
+                    </div>
+
+                    {u.lastMessage ? (
+                      <span className="text-muted-foreground truncate text-xs">
+                        {u.lastMessage.senderId === user.id && "You: "}
+                        {u.lastMessage.content}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-xs">
+                        No messages yet
+                      </span>
+                    )}
+
+                    {u.unreadCount > 0 && (
+                      <span className="absolute right-2 bottom-2 flex size-4 items-center justify-center rounded-full bg-green-600 text-[10px] text-white">
+                        {u.unreadCount}
+                      </span>
+                    )}
                   </div>
                 </div>
               );
