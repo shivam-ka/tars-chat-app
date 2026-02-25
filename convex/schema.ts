@@ -24,4 +24,13 @@ export default defineSchema({
   })
     .index("by_conversation", ["conversationId"])
     .index("by_conversation_and_read", ["conversationId", "read"]),
+
+  typingStatus: defineTable({
+    conversationId: v.id("conversations"),
+    userId: v.string(), // clerkId
+    isTyping: v.boolean(),
+    updatedAt: v.number(),
+  })
+    .index("by_conversation", ["conversationId"])
+    .index("by_conversation_and_user", ["conversationId", "userId"]),
 });
