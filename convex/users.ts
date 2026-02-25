@@ -11,7 +11,7 @@ export const getUserByClerkId = query({
   },
 });
 
-export const createUser = mutation({
+export const createAndUpdateUser = mutation({
   args: {
     clerkId: v.string(),
     name: v.string(),
@@ -24,7 +24,16 @@ export const createUser = mutation({
       .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
       .unique();
 
-    if (existing) return existing._id;
+    if (existing) {
+      await ctx.db.patch(existing._id, {
+        name: args.name,
+        email: args.email,
+        image: args.image,
+        isOnline: true,
+        lastSeen: Date.now(),
+      });
+      return existing._id;
+    }
 
     return await ctx.db.insert("users", {
       clerkId: args.clerkId,
@@ -94,5 +103,26 @@ export const getUsersWithLastMessage = query({
     }
 
     return results;
+  },
+});
+
+export const setUserOffline = mutation({
+  args: {
+    clerkId: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_clerkId", (q) => q.eq("clerkId", args.clerkId))
+      .unique();
+
+    if (!user) {
+      return;
+    }
+
+    await ctx.db.patch(user._id, {
+      isOnline: false,
+      lastSeen: Date.now(),
+    });
   },
 });

@@ -7,7 +7,7 @@ import { api } from "../../convex/_generated/api";
 
 export default function UserSync() {
   const { user, isLoaded } = useUser();
-  const createUser = useMutation(api.users.createUser);
+  const createUser = useMutation(api.users.createAndUpdateUser);
 
   useEffect(() => {
     if (!isLoaded || !user) return;
